@@ -6,7 +6,6 @@
 const path = require('path');
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-const db = require(".");
 
 // create the connection information for the sql database
 const connection = mysql.createConnection({
@@ -24,7 +23,7 @@ connection.connect(function(err) {
     startApp();
   });
 
-//   After connection is made, the app starts and the user is prompted to make a selection from options
+// After connection is made, the app starts and the user is prompted to make a selection from options
  function startApp(){
     inquirer.prompt ([
       {
@@ -39,9 +38,9 @@ connection.connect(function(err) {
             "Update Employee Role",
             "Quit"
           ]
-      }])
+      }
+    ])
     .then(response => {
-      console.log(response);
         switch (response.menu) {
           case "View Departments": showDepartments();
             break;
@@ -55,36 +54,41 @@ connection.connect(function(err) {
             break;
             case "Quit": quit();
             break;
-        };
-    }
-)};
-function quit(){ process.exit;
-  startApp();
-}
+        }
+    })
+  };
+function quit() {
+  process.end
+  }; 
 
 // Builds a table which shows existing departments
 function showDepartments() {
-  console.log(' ');
-  const query = "SELECT * FROM department";
+  query = `SELECT name AS "Department" FROM department`;
   connection.query(query, (err, res) => {
     if (err) throw err;
     console.table(res);
-  });
-}
+    startApp();
+  })
+};
 
 
 // Add a new department to the database
 function addDepartment() {
+  query = `SELECT name AS "Department" FROM department`;
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+    console.table("List of current Departments", res);
   inquirer.prompt([
       {
           name: "departmentName",
           type: "input",
-          message: "Enter new department name:",
+          message: "Enter new Department name:",
+
       }
-  ]).then(response => {
-    connection.query('INSERT INTO department (name) VALUES (?)', [response.departmentName], (err, res) => {
-      if (err) throw err;
-      console.table(res);
-      }
-    )}
-)};
+    ])
+  .then(response => {
+    connection.query ('INSERT INTO department (name) VALUES (?)', response.departmentName)
+    startApp();
+  })
+  })
+};
