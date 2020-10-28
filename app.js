@@ -1,13 +1,10 @@
-// Add departments, roles, employees
-// View departments, roles, employees
-// Update employee roles
 
 // Dependencies
 const path = require('path');
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 
-// create the connection information for the sql database
+// Create the connection information for the sql database
 const connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
@@ -16,7 +13,7 @@ const connection = mysql.createConnection({
     database: "employees_db"
   });
 
-// connect to the mysql server and sql database
+// Connect to the mysql server and sql database
 connection.connect(function(err) {
     if (err) throw err;
     console.log("Connected");
@@ -34,6 +31,7 @@ connection.connect(function(err) {
             "View Departments",
             "Add Department",
             "View All Employees",
+            "Add Employee",
             "View Employee Roles",
             "Add Employee Role",
             "Update Employee Role",
@@ -43,11 +41,13 @@ connection.connect(function(err) {
     ])
     .then(response => {
         switch (response.menu) {
-          case "View Departments": showDepartments();
+          case "View Departments": viewDepartments();
             break;
           case "Add Departments": addDepartment();
             break;
           case "View All Employees": viewAllEmployees();
+            break;
+          case "Add Employee": addEmployee();
             break;
           case "View Employee Roles": viewRoles();
             break;
@@ -60,13 +60,13 @@ connection.connect(function(err) {
         }
     })
   };
+
 function quit() {
-  process.end;
-  startApp();
+  process.exit();
   };
 
 // Builds a table which shows existing departments
-function showDepartments() {
+function viewDepartments() {
   query = `SELECT name AS "Department" FROM department`;
   connection.query(query, (err, res) => {
     if (err) throw err;
@@ -83,41 +83,70 @@ function addDepartment() {
         type: "input",
         message: "What Department would you like to add?"
       }
-  ]).then(function(response) {
-      connection.query("INSERT response INTO department SET ? ",
+  ]).then(function(res) {
+      connection.query("INSERT res INTO department VALUES ? ",
           {
-            name: response.name
+            name: res.name
           },
           function() {
               if (err) throw err
-              console.table(response);
-              quit();
+              console.table(res);
               startApp();
           }
-      )})
+      )});
 };
 
+// Views all employees in the database from previous user input
 function viewAllEmployees() {
-  connection.query("SELECT employee.first_name, employee.last_name, role_id AS employee FROM employee",
+  connection.query("SELECT * FROM employee",
   function(err, res) {
     if (err) throw err
     console.table(res);
-
+    startApp();
 })
 }
 
-// View roles in database from user input
+function addEmployee() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What's the first name of the employee?",
+        name: "employeeFirstName"
+      },
+      {
+        type: "input",
+        message: "What's the last name of the employee?",
+        name: "employeeLastName"
+      },
+      {
+        type: "input",
+        message: "What is the employee's role id number?",
+        name: "roleID"
+      }
+    ])
+    .then(function(res) {
+      connection.query("INSERT res INTO employee VALUES ?", 
+      function(err, res) {
+        if (err) throw err;
+        console.table(res);
+        startApp();
+      });
+    });
+}
+
+// View employee roles in database from user input
 function viewRoles() {
   connection.query("SELECT employee.first_name, employee.last_name, role.title AS Title FROM employee JOIN role ON employee.role_id = role.id;", 
   function(err, res) {
     if (err) throw err
     console.table(res);
-    quit();
     startApp();
   })
 }
 
-// Add role to database from user input
+
+// Add employee role to database from user input
 function addRole() { 
   connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",
    function(err, res) {
@@ -173,7 +202,7 @@ function updateRole() {
           name: "lastName",
           type: "rawlist",
           choices: function() {
-            var lastName = [];
+            const lastName = [];
             for (var i = 0; i < res.length; i++) {
               lastName.push(res[i].last_name);
             }
@@ -192,16 +221,14 @@ function updateRole() {
       connection.query("UPDATE employee SET WHERE ?", 
       {
         last_name: val.lastName
-         
       }, 
       {
         role_id: roleId
-         
       }, 
       function(){
           if (err) throw err
-          console.table(val)
-          startApp()
+          console.table(val);
+          startApp();
       })
   });
 });
