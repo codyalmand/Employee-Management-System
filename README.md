@@ -5,17 +5,17 @@
 
 <br>
 
-![]()
+![](https://github.com/codyalmand/Employee-Management-System/blob/master/images/gif.gif)
 
 <br>
 
 <br>
 
-[** Click Here To See Full Demo Video **]()
+[** Click Here To See Full Demo Video **](https://drive.google.com/file/d/1onBZQ8DuNtaz4-zqV1B_fcKUoYnWnbKR/view)
 
 <br>
 
-![]()
+![](https://github.com/codyalmand/Employee-Management-System/blob/master/images/screenshot.png)
 
 <br>
 
