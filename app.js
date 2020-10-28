@@ -23,7 +23,7 @@ connection.connect(function(err) {
     startApp();
   });
 
-// After connection is made, the app starts and the user is prompted to make a selection from options
+// After connection is made, the app starts and the user is prompted to make a selection from options menu
  function startApp(){
     inquirer.prompt ([
       {
@@ -33,6 +33,7 @@ connection.connect(function(err) {
           choices: [
             "View Departments",
             "Add Department",
+            "View All Employees",
             "View Employee Roles",
             "Add Employee Role",
             "Update Employee Role",
@@ -46,21 +47,23 @@ connection.connect(function(err) {
             break;
           case "Add Departments": addDepartment();
             break;
+          case "View All Employees": viewAllEmployees();
+            break;
           case "View Employee Roles": viewRoles();
             break;
           case "Add Employee Role": addRole();
             break;
           case "Update Employee Role": updateRole();
             break;
-            case "Quit": quit();
+          case "Quit": quit();
             break;
         }
     })
   };
 function quit() {
-  process.end
-  startApp;
-  }; 
+  process.end;
+  startApp();
+  };
 
 // Builds a table which shows existing departments
 function showDepartments() {
@@ -80,7 +83,7 @@ function addDepartment() {
         type: "input",
         message: "What Department would you like to add?"
       }
-  ]).then(function(res) {
+  ]).then(function(response) {
       connection.query("INSERT response INTO department SET ? ",
           {
             name: response.name
@@ -88,24 +91,36 @@ function addDepartment() {
           function() {
               if (err) throw err
               console.table(response);
+              quit();
               startApp();
           }
       )})
 };
 
+function viewAllEmployees() {
+  connection.query("SELECT employee.first_name, employee.last_name, role_id AS employee FROM employee",
+  function(err, res) {
+    if (err) throw err
+    console.table(res);
+
+})
+}
+
 // View roles in database from user input
 function viewRoles() {
   connection.query("SELECT employee.first_name, employee.last_name, role.title AS Title FROM employee JOIN role ON employee.role_id = role.id;", 
   function(err, res) {
-  if (err) throw err
-  console.table(res)
-  startApp()
+    if (err) throw err
+    console.table(res);
+    quit();
+    startApp();
   })
 }
 
 // Add role to database from user input
 function addRole() { 
-  connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",   function(err, res) {
+  connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",
+   function(err, res) {
     inquirer.prompt([
         {
           name: "Title",
@@ -133,4 +148,61 @@ function addRole() {
         )
     });
   });
+}
+
+// Select role quieries, role title for add employee prompt
+const roleArray = [];
+function selectRole() {
+  connection.query("SELECT * FROM role", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++) {
+      roleArray.push(res[i].title);
+    }
+  })
+  return roleArray;
+}
+
+// Updates the employee information in database
+function updateRole() {
+  connection.query("SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;",
+   function(err, res) {
+   if (err) throw err
+   console.log(res)
+  inquirer.prompt([
+        {
+          name: "lastName",
+          type: "rawlist",
+          choices: function() {
+            var lastName = [];
+            for (var i = 0; i < res.length; i++) {
+              lastName.push(res[i].last_name);
+            }
+            return lastName;
+          },
+          message: "What is the Employee's last name? ",
+        },
+        {
+          name: "role",
+          type: "rawlist",
+          message: "What is the Employees new title? ",
+          choices: selectRole()
+        },
+    ]).then(function(val) {
+      const roleId = selectRole().indexOf(val.role) + 1
+      connection.query("UPDATE employee SET WHERE ?", 
+      {
+        last_name: val.lastName
+         
+      }, 
+      {
+        role_id: roleId
+         
+      }, 
+      function(){
+          if (err) throw err
+          console.table(val)
+          startApp()
+      })
+  });
+});
 }
