@@ -48,9 +48,9 @@ connection.connect(function(err) {
             break;
           case "View Employee Roles": viewRoles();
             break;
-          case "Add Employee Role": addRoles();
+          case "Add Employee Role": addRole();
             break;
-          case "Update Employee Role": updateRoles();
+          case "Update Employee Role": updateRole();
             break;
             case "Quit": quit();
             break;
@@ -59,6 +59,7 @@ connection.connect(function(err) {
   };
 function quit() {
   process.end
+  startApp;
   }; 
 
 // Builds a table which shows existing departments
@@ -71,24 +72,65 @@ function showDepartments() {
   })
 };
 
-
 // Add a new department to the database
-function addDepartment() {
-  query = `SELECT name AS "Department" FROM department`;
-  connection.query(query, (err, res) => {
-    if (err) throw err;
-    console.table("List of current Departments", res);
+function addDepartment() { 
   inquirer.prompt([
       {
-          name: "departmentName",
-          type: "input",
-          message: "Enter new Department name:",
-
+        name: "name",
+        type: "input",
+        message: "What Department would you like to add?"
       }
-    ])
-  .then(response => {
-    connection.query ('INSERT INTO department (name) VALUES (?)', response.departmentName)
-    startApp();
-  })
-  })
+  ]).then(function(res) {
+      connection.query("INSERT response INTO department SET ? ",
+          {
+            name: response.name
+          },
+          function() {
+              if (err) throw err
+              console.table(response);
+              startApp();
+          }
+      )})
 };
+
+// View roles in database from user input
+function viewRoles() {
+  connection.query("SELECT employee.first_name, employee.last_name, role.title AS Title FROM employee JOIN role ON employee.role_id = role.id;", 
+  function(err, res) {
+  if (err) throw err
+  console.table(res)
+  startApp()
+  })
+}
+
+// Add role to database from user input
+function addRole() { 
+  connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",   function(err, res) {
+    inquirer.prompt([
+        {
+          name: "Title",
+          type: "input",
+          message: "What is the role's Title?"
+        },
+        {
+          name: "Salary",
+          type: "input",
+          message: "What is the Salary?"
+
+        } 
+    ]).then(function(res) {
+        connection.query(
+            "INSERT INTO role SET ?",
+            {
+              title: res.Title,
+              salary: res.Salary,
+            },
+            function(err) {
+                if (err) throw err
+                console.table(res);
+                startApp();
+            }
+        )
+    });
+  });
+}
